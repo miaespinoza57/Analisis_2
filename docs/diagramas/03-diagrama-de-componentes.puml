@@ -1,0 +1,84 @@
+@startuml 03-diagrama-de-componentes
+title Diagrama de componentes - Arquitectura Publisher/Subscriber con Event Bus
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #B8A04A
+left to right direction
+
+package "Núcleo del bus (taberna.bus)" #EEFBEA {
+  interface "BusDeEventos" as IBus
+  interface "Suscriptor<T extends Evento>" as ISuscriptor
+  component [BusDeEventosEnMemoria] as Bus
+}
+
+package "Eventos inmutables (taberna.eventos)" #EAF4FF {
+  component [PedidoRealizadoEvent] as EvPedido
+  component [BebidaServidaEvent] as EvBebida
+  component [ComidaPreparadaEvent] as EvComida
+  component [BandaTocandoEvent] as EvBanda
+}
+
+package "Publicadores (taberna.componentes)" #FFF4E5 {
+  component [SistemaDePedidos] as Pedidos
+  component [Banda] as Banda
+}
+
+package "Suscriptores y publicadores (taberna.componentes)" #FFF4E5 {
+  component [Barra] as Barra
+  component [Cocina] as Cocina
+}
+
+package "Suscriptores (taberna.componentes)" #FFF4E5 {
+  component [SistemaDeSonido] as Sonido
+  component [PanelLED] as Panel
+}
+
+package "Extensiones agregadas sin modificar código (taberna.extensiones)" #F3EAFF {
+  component [SistemaDeHumo] as Humo
+  component [SistemaDeIluminacion] as Luces
+  component [RegistroDeAuditoria] as Auditoria
+}
+
+component [Main\n(raíz de composición)] as Main
+
+Bus -up- IBus
+Bus ..> ISuscriptor : notifica
+
+' Todos dependen SOLO de la interfaz del bus
+Pedidos --> IBus : publica
+Banda --> IBus : publica
+Barra --> IBus : suscribe / publica
+Cocina --> IBus : suscribe / publica
+Sonido --> IBus : suscribe
+Panel --> IBus : suscribe (a todo)
+Humo --> IBus : suscribe
+Luces --> IBus : suscribe
+Auditoria --> IBus : suscribe (a todo)
+
+' Qué evento viaja por el bus
+Pedidos ..> EvPedido : crea
+Barra ..> EvBebida : crea
+Cocina ..> EvComida : crea
+Banda ..> EvBanda : crea
+
+Main ..> Bus : crea
+Main ..> Pedidos : crea y activa
+Main ..> Banda : crea y activa
+Main ..> Barra : crea y activa
+Main ..> Cocina : crea y activa
+Main ..> Sonido : crea y activa
+Main ..> Panel : crea y activa
+Main ..> Humo : conecta en caliente
+Main ..> Luces : conecta en caliente
+Main ..> Auditoria : conecta en caliente
+
+note bottom of IBus
+  Ningún componente tiene una referencia
+  a otro componente. Solo se comunican
+  por medio de eventos a través del bus.
+end note
+@enduml

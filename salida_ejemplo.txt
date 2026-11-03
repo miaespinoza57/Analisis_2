@@ -1,0 +1,57 @@
+
+=== Abre la taberna "El Gólem Alquímico" ===
+[00:00.0] [EXTENSION]    Conectando SistemaDeHumo, SistemaDeIluminacion y RegistroDeAuditoria...
+
+=== Comienza la noche ===
+[00:00.5] [PEDIDOS]      Mesa 5 pide [cerveza, hamburguesa] (pedido_123)
+[00:00.5] [BARRA]        Preparando cerveza para la Mesa 5...
+[00:00.5] [COCINA]       Cocinando hamburguesa del pedido_123...
+[00:00.5] [PANEL LED]    ¡Nuevo pedido en la Mesa 5! [cerveza, hamburguesa]
+[00:01.0] [BANDA]        Empieza a tocar "El Algoritmo del Amor" (Los Seguidores de Dijkstra)
+[00:01.0] [SONIDO]       Ajustando ecualizador para: El Algoritmo del Amor
+[00:01.0] [LUCES]        Luces en modo ambiente cálido para: El Algoritmo del Amor
+[00:01.0] [PANEL LED]    Ahora suena: Los Seguidores de Dijkstra - El Algoritmo del Amor (180 s)
+[00:02.0] [PEDIDOS]      Mesa 2 pide [limonada, cerveza, tacos] (pedido_124)
+[00:02.0] [BARRA]        Preparando limonada para la Mesa 2...
+[00:02.0] [BARRA]        Preparando cerveza para la Mesa 2...
+[00:02.0] [COCINA]       Cocinando tacos del pedido_124...
+[00:02.0] [PANEL LED]    ¡Nuevo pedido en la Mesa 2! [limonada, cerveza, tacos]
+[00:02.5] [BARRA]        Bebida lista para la Mesa 5: cerveza
+[00:02.5] [PANEL LED]    ¡Nueva bebida servida en la Mesa 5! (cerveza)
+[00:03.5] [PEDIDOS]      Mesa 8 pide [refresco, pizza] (pedido_125)
+[00:03.5] [BARRA]        Preparando refresco para la Mesa 8...
+[00:03.5] [COCINA]       Cocinando pizza del pedido_125...
+[00:03.5] [PANEL LED]    ¡Nuevo pedido en la Mesa 8! [refresco, pizza]
+[00:04.0] [BARRA]        Bebida lista para la Mesa 2: limonada
+[00:04.0] [BARRA]        Bebida lista para la Mesa 2: cerveza
+[00:04.0] [PANEL LED]    ¡Nueva bebida servida en la Mesa 2! (limonada)
+[00:04.0] [PANEL LED]    ¡Nueva bebida servida en la Mesa 2! (cerveza)
+[00:05.0] [BANDA]        Empieza a tocar "Through the Fire and Flames" (Los Seguidores de Dijkstra)
+[00:05.0] [SONIDO]       Ajustando ecualizador para: Through the Fire and Flames
+[00:05.0] [HUMO]         ¡Canción épica! Disparando efectos de humo durante 444 s
+[00:05.0] [LUCES]        Luces en modo estroboscópico para: Through the Fire and Flames
+[00:05.0] [PANEL LED]    Ahora suena: Los Seguidores de Dijkstra - Through the Fire and Flames (444 s)
+[00:05.5] [BARRA]        Bebida lista para la Mesa 8: refresco
+[00:05.5] [PANEL LED]    ¡Nueva bebida servida en la Mesa 8! (refresco)
+[00:05.5] [COCINA]       Platillo terminado para el pedido_123: hamburguesa
+[00:05.5] [PANEL LED]    ¡Comida preparada para el pedido_123! (hamburguesa)
+[00:07.0] [COCINA]       Platillo terminado para el pedido_124: tacos
+[00:07.0] [PANEL LED]    ¡Comida preparada para el pedido_124! (tacos)
+[00:08.5] [COCINA]       Platillo terminado para el pedido_125: pizza
+[00:08.5] [PANEL LED]    ¡Comida preparada para el pedido_125! (pizza)
+[00:09.0] [BANDA]        Empieza a tocar "Recursión en Mi Menor" (Los Seguidores de Dijkstra)
+[00:09.0] [SONIDO]       Ajustando ecualizador para: Recursión en Mi Menor
+[00:09.0] [LUCES]        Luces en modo ambiente cálido para: Recursión en Mi Menor
+[00:09.0] [PANEL LED]    Ahora suena: Los Seguidores de Dijkstra - Recursión en Mi Menor (200 s)
+[00:10.0] [EXTENSION]    SistemaDeIluminacion desconectado del bus
+[00:13.0] [BANDA]        Empieza a tocar "El Algoritmo del Amor" (Los Seguidores de Dijkstra)
+[00:13.0] [SONIDO]       Ajustando ecualizador para: El Algoritmo del Amor
+[00:13.0] [PANEL LED]    Ahora suena: Los Seguidores de Dijkstra - El Algoritmo del Amor (180 s)
+
+=== Cierra la taberna ===
+
+=== Resumen de auditoría ===
+[00:15.0] [AUDITORIA]    BandaTocandoEvent      4
+[00:15.0] [AUDITORIA]    BebidaServidaEvent     4
+[00:15.0] [AUDITORIA]    ComidaPreparadaEvent   3
+[00:15.0] [AUDITORIA]    PedidoRealizadoEvent   3

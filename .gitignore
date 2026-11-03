@@ -1,0 +1,24 @@
+# Compilación
+out/
+bin/
+target/
+build/
+*.class
+*.jar
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+hs_err_pid*

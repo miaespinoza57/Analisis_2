@@ -1,0 +1,166 @@
+@startuml 01b-clases-componentes
+title Diagrama de clases (2/3) - Componentes de la taberna y extensiones
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+left to right direction
+skinparam class {
+  BackgroundColor #FDFDFD
+  BorderColor #444444
+  ArrowColor #444444
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A04A
+}
+
+' ---- Abstracciones (detalladas en el diagrama 1/3) ----
+interface BusDeEventos <<interface>> #EEFBEA
+interface "Suscriptor<T extends Evento>" as Suscriptor <<interface>> #EEFBEA
+interface Evento <<interface>> #EAF4FF
+
+package "taberna.componentes" #FFF4E5 {
+  class SistemaDePedidos <<publicador>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    -contadorDePedidos : AtomicInteger
+    +realizarPedido(numeroDeMesa : int, items : List<ItemDelPedido>) : String
+  }
+
+  class Barra <<suscriptor y publicador>> {
+    +SEGUNDOS_DE_PREPARACION_DE_BEBIDA : int = 2 {static}
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    -planificadorDeTareas : ScheduledExecutorService
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(pedido : PedidoRealizadoEvent) : void
+    -servirBebida(numeroDeMesa : int, bebida : ItemDelPedido) : void
+  }
+
+  class Cocina <<suscriptor y publicador>> {
+    +SEGUNDOS_DE_PREPARACION_DE_COMIDA : int = 5 {static}
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    -planificadorDeTareas : ScheduledExecutorService
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(pedido : PedidoRealizadoEvent) : void
+    -terminarPlato(identificadorDePedido : String, plato : ItemDelPedido) : void
+  }
+
+  class Banda <<publicador>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    -planificadorDeTareas : ScheduledExecutorService
+    -nombreDeLaBanda : String
+    -repertorio : List<Cancion>
+    -posicionDeLaSiguienteCancion : AtomicInteger
+    -actuacionProgramada : ScheduledFuture<?>
+    +iniciarActuacion(retardoInicialEnSegundos : long, segundosEntreCanciones : long) : void
+    +detenerActuacion() : void
+    -tocarSiguienteCancion() : void
+  }
+
+  class "Banda.Cancion" as Cancion <<record>> {
+    +nombre : String
+    +duracionEnSegundos : int
+  }
+
+  class SistemaDeSonido <<suscriptor>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(bandaTocando : BandaTocandoEvent) : void
+  }
+
+  class PanelLED <<suscriptor de todos los eventos>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(evento : Evento) : void
+    -redactarAnuncio(evento : Evento) : String
+  }
+}
+
+package "taberna.extensiones" #F3EAFF {
+  class SistemaDeHumo <<suscriptor nuevo>> {
+    +CANCION_QUE_ACTIVA_EL_HUMO : String {static}
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(bandaTocando : BandaTocandoEvent) : void
+  }
+
+  class SistemaDeIluminacion <<suscriptor nuevo>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(bandaTocando : BandaTocandoEvent) : void
+  }
+
+  class RegistroDeAuditoria <<suscriptor nuevo>> {
+    -busDeEventos : BusDeEventos
+    -consola : ConsolaDeLaTaberna
+    -cantidadDeEventosPorTipo : Map<String, LongAdder>
+    +activar() : void
+    +desactivar() : void
+    +alRecibirEvento(evento : Evento) : void
+    +resumen() : Map<String, Long>
+    +imprimirResumen() : void
+  }
+
+  class DemostracionDeExtensibilidad {
+    -consola : ConsolaDeLaTaberna
+    -sistemaDeHumo : SistemaDeHumo
+    -sistemaDeIluminacion : SistemaDeIluminacion
+    -registroDeAuditoria : RegistroDeAuditoria
+    +conectarNuevosComponentes() : void
+    +desconectarIluminacion() : void
+    +imprimirResumenDeAuditoria() : void
+  }
+}
+
+' ---- Implementan Suscriptor ----
+Barra ..|> Suscriptor : T = PedidoRealizadoEvent
+Cocina ..|> Suscriptor : T = PedidoRealizadoEvent
+SistemaDeSonido ..|> Suscriptor : T = BandaTocandoEvent
+SistemaDeHumo ..|> Suscriptor : T = BandaTocandoEvent
+SistemaDeIluminacion ..|> Suscriptor : T = BandaTocandoEvent
+PanelLED ..|> Suscriptor : T = Evento
+RegistroDeAuditoria ..|> Suscriptor : T = Evento
+
+' ---- Cada componente SOLO conoce la abstracción del bus ----
+SistemaDePedidos --> BusDeEventos
+Barra --> BusDeEventos
+Cocina --> BusDeEventos
+Banda --> BusDeEventos
+SistemaDeSonido --> BusDeEventos
+PanelLED --> BusDeEventos
+SistemaDeHumo --> BusDeEventos
+SistemaDeIluminacion --> BusDeEventos
+RegistroDeAuditoria --> BusDeEventos
+
+Banda *-- "1..*" Cancion : repertorio
+DemostracionDeExtensibilidad *-- SistemaDeHumo
+DemostracionDeExtensibilidad *-- SistemaDeIluminacion
+DemostracionDeExtensibilidad *-- RegistroDeAuditoria
+Suscriptor ..> Evento : T extends
+
+note right of BusDeEventos
+  Ningún componente tiene un atributo de tipo
+  otro componente: solo conocen BusDeEventos.
+  Eso es el desacoplamiento total.
+end note
+
+note bottom of DemostracionDeExtensibilidad
+  Open/Closed: estas clases se agregan sin modificar
+  Banda, el bus ni los componentes existentes.
+end note
+@enduml

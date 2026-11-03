@@ -1,0 +1,120 @@
+@startuml 01a-clases-bus-y-eventos
+title Diagrama de clases (1/3) - Núcleo del bus y eventos inmutables
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #FDFDFD
+  BorderColor #444444
+  ArrowColor #444444
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A04A
+}
+
+package "taberna.bus" #EEFBEA {
+  interface Suscriptor<T extends Evento> <<interface>> {
+    +alRecibirEvento(evento : T) : void
+  }
+
+  interface BusDeEventos <<interface>> {
+    +suscribir(tipoDeEvento : Class<T>, suscriptor : Suscriptor<? super T>) : void
+    +desuscribir(tipoDeEvento : Class<T>, suscriptor : Suscriptor<? super T>) : boolean
+    +publicar(evento : Evento) : void
+    +cantidadDeSuscriptores(tipoDeEvento : Class<? extends Evento>) : int
+  }
+
+  class BusDeEventosEnMemoria {
+    -REGISTRO : Logger {static}
+    -suscriptoresPorTipoDeEvento : Map<Class<? extends Evento>, CopyOnWriteArrayList<Suscriptor<?>>>
+    +suscribir(tipoDeEvento : Class<T>, suscriptor : Suscriptor<? super T>) : void
+    +desuscribir(tipoDeEvento : Class<T>, suscriptor : Suscriptor<? super T>) : boolean
+    +publicar(evento : Evento) : void
+    +cantidadDeSuscriptores(tipoDeEvento : Class<? extends Evento>) : int
+    -tiposRegistradosCompatiblesCon(evento : Evento) : List<Class<? extends Evento>>
+    -notificar(suscriptor : Suscriptor<?>, evento : Evento) : void {static}
+  }
+}
+
+package "taberna.eventos" #EAF4FF {
+  interface Evento <<interface>> {
+    +identificadorDelEvento() : UUID
+    +momentoDeOcurrencia() : Instant
+    +nombreDelTipoDeEvento() : String
+  }
+
+  enum CategoriaDeItem {
+    BEBIDA
+    COMIDA
+  }
+
+  class ItemDelPedido <<record>> {
+    +nombre : String
+    +categoria : CategoriaDeItem
+    +bebida(nombre : String) : ItemDelPedido {static}
+    +comida(nombre : String) : ItemDelPedido {static}
+    +esBebida() : boolean
+    +esComida() : boolean
+  }
+
+  class PedidoRealizadoEvent <<record>> {
+    +identificadorDelEvento : UUID
+    +momentoDeOcurrencia : Instant
+    +numeroDeMesa : int
+    +identificadorDePedido : String
+    +items : List<ItemDelPedido>
+    +bebidas() : List<ItemDelPedido>
+    +comidas() : List<ItemDelPedido>
+  }
+
+  class BebidaServidaEvent <<record>> {
+    +identificadorDelEvento : UUID
+    +momentoDeOcurrencia : Instant
+    +numeroDeMesa : int
+    +bebida : String
+  }
+
+  class ComidaPreparadaEvent <<record>> {
+    +identificadorDelEvento : UUID
+    +momentoDeOcurrencia : Instant
+    +identificadorDePedido : String
+    +plato : String
+  }
+
+  class BandaTocandoEvent <<record>> {
+    +identificadorDelEvento : UUID
+    +momentoDeOcurrencia : Instant
+    +nombreDeLaBanda : String
+    +nombreDeLaCancion : String
+    +duracionEnSegundos : int
+  }
+}
+
+BusDeEventosEnMemoria ..|> BusDeEventos
+BusDeEventosEnMemoria o-- "0..*" Suscriptor : suscriptoresPorTipoDeEvento
+BusDeEventos ..> Suscriptor : registra
+BusDeEventos ..> Evento : publica
+Suscriptor ..> Evento : T extends
+
+PedidoRealizadoEvent ..|> Evento
+BebidaServidaEvent ..|> Evento
+ComidaPreparadaEvent ..|> Evento
+BandaTocandoEvent ..|> Evento
+
+PedidoRealizadoEvent *-- "1..*" ItemDelPedido : items
+ItemDelPedido --> CategoriaDeItem
+
+note bottom of BusDeEventosEnMemoria
+  Thread-safe: ConcurrentHashMap + CopyOnWriteArrayList.
+  Un suscriptor que falla no detiene a los demás.
+  Un suscriptor de Evento.class recibe todos los eventos.
+end note
+
+note bottom of PedidoRealizadoEvent
+  Los eventos son records inmutables con validación
+  en el constructor y copia defensiva de las listas.
+end note
+@enduml

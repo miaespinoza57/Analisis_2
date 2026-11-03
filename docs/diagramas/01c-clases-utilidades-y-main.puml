@@ -1,0 +1,96 @@
+@startuml 01c-clases-utilidades-y-main
+title Diagrama de clases (3/3) - Utilidades y raíz de composición (Main)
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+left to right direction
+skinparam class {
+  BackgroundColor #FDFDFD
+  BorderColor #444444
+  ArrowColor #444444
+}
+skinparam note {
+  BackgroundColor #FFF8DC
+  BorderColor #B8A04A
+}
+
+package "taberna.util" #F2F2F2 {
+  class ConsolaDeLaTaberna {
+    -ANCHO_DE_LA_ETIQUETA : int {static}
+    -salida : PrintStream
+    -instanteDeInicioEnNanosegundos : long
+    +imprimir(color : ColorAnsi, etiquetaDelComponente : String, mensaje : String) : void
+    +imprimirSeparador(titulo : String) : void
+    -marcaDeTiempoRelativa() : String
+  }
+
+  enum ColorAnsi {
+    RESTABLECER
+    ROJO
+    VERDE
+    AMARILLO
+    AZUL
+    MAGENTA
+    CIAN
+    NARANJA
+    GRIS
+    -secuenciaDeEscape : String
+    +aplicarA(texto : String) : String
+  }
+
+  class Validaciones <<utilidad>> {
+    +exigirNoNulo(valor : T, nombreDelCampo : String) : T {static}
+    +exigirTextoNoVacio(texto : String, nombreDelCampo : String) : String {static}
+    +exigirPositivo(numero : int, nombreDelCampo : String) : int {static}
+  }
+
+  class HilosNombrados <<utilidad>> {
+    +conPrefijo(prefijoDelNombre : String) : ThreadFactory {static}
+  }
+}
+
+class Main <<raíz de composición>> {
+  -NOMBRE_DE_LA_BANDA : String {static}
+  -SEGUNDOS_ENTRE_CANCIONES : int {static}
+  -SEGUNDOS_DE_DURACION_DE_LA_DEMOSTRACION : int {static}
+  +main(argumentos : String[]) : void {static}
+  -crearRepertorio() : List<Cancion> {static}
+  -programarPedidosDeLosClientes(planificadorDeClientes : ScheduledExecutorService, sistemaDePedidos : SistemaDePedidos) : void {static}
+  -cerrar(ejecutores : ExecutorService...) : void {static}
+}
+
+class BusDeEventosEnMemoria
+class SistemaDePedidos
+class Barra
+class Cocina
+class Banda
+class SistemaDeSonido
+class PanelLED
+class DemostracionDeExtensibilidad
+
+ConsolaDeLaTaberna ..> ColorAnsi
+Main ..> ConsolaDeLaTaberna : crea
+Main ..> HilosNombrados : usa
+Main ..> BusDeEventosEnMemoria : crea
+Main ..> SistemaDePedidos : crea
+Main ..> Barra : crea y activa
+Main ..> Cocina : crea y activa
+Main ..> Banda : crea e inicia
+Main ..> SistemaDeSonido : crea y activa
+Main ..> PanelLED : crea y activa
+Main ..> DemostracionDeExtensibilidad : crea y conecta
+
+note right of Main
+  Main es el ÚNICO lugar donde se conocen todas las piezas:
+  crea el bus, crea los componentes y los conecta.
+  Los componentes nunca se referencian entre sí.
+end note
+
+note bottom of Validaciones
+  Los eventos y los componentes usan Validaciones
+  y reciben ConsolaDeLaTaberna solo para imprimir
+  mensajes sincronizados (no para comunicarse).
+end note
+@enduml

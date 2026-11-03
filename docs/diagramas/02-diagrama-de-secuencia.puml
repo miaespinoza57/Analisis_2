@@ -1,0 +1,125 @@
+@startuml 02-diagrama-de-secuencia
+title Diagrama de secuencia - Patrón Event Bus "El Gólem Alquímico"
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam noteBackgroundColor #FFF8DC
+skinparam noteBorderColor #B8A04A
+skinparam ParticipantPadding 12
+
+actor Cliente
+participant "SistemaDePedidos" as Pedidos
+participant "BusDeEventosEnMemoria" as Bus
+participant "Barra" as Barra
+participant "Cocina" as Cocina
+participant "PanelLED" as Panel
+participant "Banda" as Banda
+participant "SistemaDeSonido" as Sonido
+participant "SistemaDeHumo" as Humo
+
+== Flujo principal: pedido de la Mesa 5 (1 cerveza + 1 hamburguesa) ==
+
+Cliente -> Pedidos : realizarPedido(5, [cerveza, hamburguesa])
+activate Pedidos
+Pedidos -> Pedidos : crea PedidoRealizadoEvent\n(mesa 5, "pedido_123", items)
+Pedidos -> Bus : publicar(PedidoRealizadoEvent)
+activate Bus
+note over Bus
+  Primero notifica a los suscriptores del tipo exacto
+  y después a los del tipo base Evento (PanelLED).
+end note
+Bus -> Barra : alRecibirEvento(PedidoRealizadoEvent)
+activate Barra
+Barra -> Barra : bebidas() = [cerveza]\nschedule(servirBebida, 2 s)
+Barra --> Bus
+deactivate Barra
+Bus -> Cocina : alRecibirEvento(PedidoRealizadoEvent)
+activate Cocina
+Cocina -> Cocina : comidas() = [hamburguesa]\nschedule(terminarPlato, 5 s)
+Cocina --> Bus
+deactivate Cocina
+Bus -> Panel : alRecibirEvento(PedidoRealizadoEvent)
+activate Panel
+Panel -> Panel : imprime "¡Nuevo pedido en la Mesa 5!"
+Panel --> Bus
+deactivate Panel
+Bus --> Pedidos
+deactivate Bus
+Pedidos --> Cliente : "pedido_123"
+deactivate Pedidos
+
+... 2 segundos después (hilo del planificador) ...
+
+Barra -> Barra : servirBebida(5, cerveza)
+activate Barra
+Barra -> Bus : publicar(BebidaServidaEvent(5, cerveza))
+activate Bus
+Bus -> Panel : alRecibirEvento(BebidaServidaEvent)
+activate Panel
+Panel -> Panel : imprime "¡Nueva bebida servida en la Mesa 5!"
+Panel --> Bus
+deactivate Panel
+Bus --> Barra
+deactivate Bus
+deactivate Barra
+
+... 5 segundos después del pedido (hilo del planificador) ...
+
+Cocina -> Cocina : terminarPlato("pedido_123", hamburguesa)
+activate Cocina
+Cocina -> Bus : publicar(ComidaPreparadaEvent("pedido_123", hamburguesa))
+activate Bus
+Bus -> Panel : alRecibirEvento(ComidaPreparadaEvent)
+activate Panel
+Panel -> Panel : imprime "¡Comida preparada para el pedido_123!"
+Panel --> Bus
+deactivate Panel
+Bus --> Cocina
+deactivate Bus
+deactivate Cocina
+
+== Flujo en paralelo: la banda toca (hilo propio de la Banda) ==
+
+Banda -> Banda : tocarSiguienteCancion()
+activate Banda
+Banda -> Bus : publicar(BandaTocandoEvent\n("Los Seguidores de Dijkstra", "El Algoritmo del Amor", 180))
+activate Bus
+Bus -> Sonido : alRecibirEvento(BandaTocandoEvent)
+activate Sonido
+Sonido -> Sonido : imprime "Ajustando ecualizador para:\nEl Algoritmo del Amor"
+Sonido --> Bus
+deactivate Sonido
+Bus -> Humo : alRecibirEvento(BandaTocandoEvent)
+activate Humo
+Humo -> Humo : la canción no es "Through the Fire and Flames"\n→ no hace nada
+Humo --> Bus
+deactivate Humo
+Bus -> Panel : alRecibirEvento(BandaTocandoEvent)
+activate Panel
+Panel -> Panel : imprime "Ahora suena: Los Seguidores de Dijkstra - El Algoritmo del Amor"
+Panel --> Bus
+deactivate Panel
+Bus --> Banda
+deactivate Bus
+deactivate Banda
+
+== Extensibilidad: la banda toca "Through the Fire and Flames" ==
+
+Banda -> Bus : publicar(BandaTocandoEvent\n("Los Seguidores de Dijkstra", "Through the Fire and Flames", 444))
+activate Bus
+Bus -> Sonido : alRecibirEvento(BandaTocandoEvent)
+Sonido -> Sonido : imprime "Ajustando ecualizador para:\nThrough the Fire and Flames"
+Bus -> Humo : alRecibirEvento(BandaTocandoEvent)
+Humo -> Humo : imprime "¡Canción épica! Disparando efectos de humo"
+Bus -> Panel : alRecibirEvento(BandaTocandoEvent)
+Panel -> Panel : imprime "Ahora suena: ... Through the Fire and Flames"
+deactivate Bus
+
+note over Banda, Humo
+  SistemaDeHumo se conectó al bus con suscribir(BandaTocandoEvent.class, this)
+  sin modificar ni un carácter de Banda ni de BusDeEventosEnMemoria.
+  (SistemaDeIluminacion y RegistroDeAuditoria se conectan igual; se omiten aquí por claridad.)
+end note
+@enduml
